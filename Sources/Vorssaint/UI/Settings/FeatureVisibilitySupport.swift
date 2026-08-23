@@ -8,7 +8,7 @@ import Foundation
 /// below and the unit tests can reason about pages without pulling UI in.
 enum SettingsPage: Hashable {
     case general, features, energy, monitor
-    case mouse, switcher, dock, keyDebounce, superKey, cutPaste, autoQuit, quitProtection, cleaner, uninstaller, urlCleaner, homebrew, appUpdates, media, clipboard, windowLayout, shelf, quickTools, textSnippets, screenshot, radialMenu, commandBar, killProcess, portManager, notch, notchMascot
+    case mouse, switcher, dock, keyDebounce, superKey, cutPaste, autoQuit, quitProtection, cleaner, uninstaller, urlCleaner, homebrew, appUpdates, media, videoDownloader, clipboard, windowLayout, shelf, quickTools, textSnippets, screenshot, radialMenu, commandBar, killProcess, portManager, notch, notchMascot
     case shortcuts, advanced, about, releaseNotes, support
 }
 
@@ -163,6 +163,7 @@ final class SettingsRouter: ObservableObject {
     /// One-shot hint for the Cleaner page's tool switcher, so a panel surface
     /// can land directly on a specific tool. Consumed and cleared on arrival.
     @Published var cleanerTool: String?
+    @Published private(set) var videoDownloaderCookiesRequested = false
     /// One-shot hint for the Dynamic Island page, so a section of the island
     /// can open its own options. Consumed and cleared on arrival.
     @Published var notchModule: NotchModule?
@@ -261,6 +262,18 @@ final class SettingsRouter: ObservableObject {
     func consumeDestinationRequest(id: UUID) {
         guard pendingDestinationRequest?.id == id else { return }
         pendingDestinationRequest = nil
+    }
+
+    func requestVideoDownloaderCookies() {
+        videoDownloaderCookiesRequested = true
+        request(FeatureSettingsDestination(.videoDownloader))
+    }
+
+    @discardableResult
+    func consumeVideoDownloaderCookiesRequest() -> Bool {
+        guard videoDownloaderCookiesRequested else { return false }
+        videoDownloaderCookiesRequested = false
+        return true
     }
 
     /// Clears only the feature target a view actually revealed. Mirrors
@@ -417,6 +430,7 @@ enum FeatureVisibilitySupport {
         case .cutPaste: return [.finderCutPaste, .finderRename]
         case .shelf: return [.shelf]
         case .media: return [.mediaTools]
+        case .videoDownloader: return [.videoDownloader]
         case .quickTools: return [.quickLauncher, .quickToggles, .quitApps, .micMute,
                                   .cameraPreview, .wallpaper, .scratchpad, .cleaningMode]
         case .urlCleaner: return [.urlCleaner]

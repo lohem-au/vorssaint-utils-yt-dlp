@@ -221,6 +221,10 @@ enum SettingsBackupSupport {
         // A fit measured against one Mac's camera housing would misfit another's.
         DefaultsKey.notchCameraFitWidth,
         DefaultsKey.notchCameraFitHeight,
+        // Local filesystem placement and Terminal permission state never travel
+        // to another Mac.
+        DefaultsKey.videoDownloaderDestinationPath,
+        DefaultsKey.videoDownloaderTerminalSetupUsed,
     ]
 
     /// The file's content: an envelope with the format version, the app

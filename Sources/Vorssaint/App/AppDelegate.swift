@@ -49,6 +49,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     private var popoverCloseCompletions: [() -> Void] = []
     private var isTerminating = false
     private var inputSourceRestorationPending = false
+    private var downloaderTerminationPending = false
     private var cancellables = Set<AnyCancellable>()
     private var settingsWindow: NSWindow?
     private var settingsKeepsAppRegular = false
@@ -299,15 +300,26 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     }
 
     func applicationShouldTerminate(_ sender: NSApplication) -> NSApplication.TerminateReply {
-        if inputSourceRestorationPending { return .terminateLater }
-        guard CommandBarService.shared.hasBorrowedInputSource else { return .terminateNow }
-        inputSourceRestorationPending = true
-        // Terminate-later runs a modal loop, which may be nested inside a
-        // main-queue callback. Schedule in both modes before approving quit.
-        RunLoop.main.perform(inModes: [.default, .modalPanel]) { [weak self] in
-            CommandBarService.shared.restoreBorrowedInputSource()
-            self?.inputSourceRestorationPending = false
-            sender.reply(toApplicationShouldTerminate: true)
+        if downloaderTerminationPending || inputSourceRestorationPending { return .terminateLater }
+        downloaderTerminationPending = true
+        VideoDownloaderWorkflow.terminateLoaded { [weak self] in
+            guard let self else {
+                sender.reply(toApplicationShouldTerminate: true)
+                return
+            }
+            self.downloaderTerminationPending = false
+            guard CommandBarService.shared.hasBorrowedInputSource else {
+                sender.reply(toApplicationShouldTerminate: true)
+                return
+            }
+            self.inputSourceRestorationPending = true
+            // Terminate-later runs a modal loop, which may be nested inside a
+            // main-queue callback. Schedule in both modes before approving quit.
+            RunLoop.main.perform(inModes: [.default, .modalPanel]) { [weak self] in
+                CommandBarService.shared.restoreBorrowedInputSource()
+                self?.inputSourceRestorationPending = false
+                sender.reply(toApplicationShouldTerminate: true)
+            }
         }
         return .terminateLater
     }
@@ -1301,6 +1313,9 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         // (Menu bar icon recovery happens on a deliberate reopen, not here: this
         // fires on every activation, so rebuilding here would cause churn/flicker.)
         UpdateService.shared.checkIfStale()
+        // A no-op unless the downloader is loaded or has a persisted
+        // Terminal setup to recover.
+        VideoDownloaderWorkflow.applicationBecameActiveIfNeeded()
         restoreAfterAppUpdateHandoff()
         if settingsWindow?.isVisible == true {
             NotificationCenter.default.post(name: LaunchAtLoginSupport.settingsRefreshRequested, object: nil)
@@ -1333,6 +1348,30 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
         }
         DispatchQueue.main.asyncAfter(deadline: .now() + delay) { [weak self] in
             self?.closePopoverNow(animated: animated, reason: reason, completion: completion)
+        }
+    }
+
+    /// A modal file panel must not sit on top of the menu-bar popover. The
+    /// popover is deliberately kept alive while utility views are open, which
+    /// can leave its window intercepting clicks after the modal session ends.
+    /// Close it completely and let the caller restore it after the panel
+    /// returns.
+    @discardableResult
+    func suspendPopoverForModalPanel() -> Bool {
+        guard popover.isShown else { return false }
+        PanelInteractionState.shared.keepsPopoverOpen = false
+        closePopover(animated: false)
+        return true
+    }
+
+    /// Reopen a popover that was suspended around a modal file panel. This is
+    /// scheduled for the next run-loop turn so AppKit has finished removing
+    /// the old popover window before showing it again.
+    func restorePopoverAfterModalPanelIfNeeded(wasShown: Bool) {
+        guard wasShown else { return }
+        DispatchQueue.main.async { [weak self] in
+            guard let self, !self.popover.isShown else { return }
+            self.showPopover(animate: false)
         }
     }
 

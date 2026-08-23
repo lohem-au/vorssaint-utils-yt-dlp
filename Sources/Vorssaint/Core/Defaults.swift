@@ -323,6 +323,7 @@ enum DefaultsKey {
     static let panelUtilityHomebrew = "panelUtilityHomebrew"
     static let homebrewGroupDependencies = "homebrewGroupDependencies"
     static let panelUtilityAppUpdates = "panelUtilityAppUpdates"
+    static let panelUtilityVideoDownloader = "panelUtilityVideoDownloader"
     static let appUpdatesCheckFrequency = "appUpdatesCheckFrequency"  // off | daily | weekly
     static let appUpdatesIncludeHomebrewApps = "appUpdatesIncludeHomebrewApps"
     static let appUpdatesIncludeAppStore = "appUpdatesIncludeAppStore"
@@ -557,6 +558,20 @@ enum DefaultsKey {
     static let mediaImageSelectedProfileID = "mediaImageSelectedProfileID"
     static let mediaTextAccurate = "mediaTextAccurate"
     static let mediaTextLanguageCorrection = "mediaTextLanguageCorrection"
+
+    // Video Downloader — keep the current URL and job state out of preferences.
+    // Only the download folder and setup details belong to this Mac.
+    static let videoDownloaderDestinationPath = "videoDownloaderDestinationPath"
+    static let videoDownloaderTerminalSetupUsed = "videoDownloaderTerminalSetupUsed"
+    static let videoDownloaderUseBrowserCookies = "videoDownloaderUseBrowserCookies"
+    static let videoDownloaderCookiesBrowser = "videoDownloaderCookiesBrowser"
+#if VORSSAINT_TEST
+    // Legacy-only names retained for the existing test fixture. The runtime
+    // no longer persists Terminal setup state across launches.
+    static let videoDownloaderTerminalSetupStatusPath = "videoDownloaderTerminalSetupStatusPath"
+    static let videoDownloaderTerminalSetupBootID = "videoDownloaderTerminalSetupBootID"
+    static let videoDownloaderTerminalSetupDeadline = "videoDownloaderTerminalSetupDeadline"
+#endif
 
     // Clipboard history — text only, opt-in and local.
     static let clipboardHistoryEnabled = "clipboardHistoryEnabled"
@@ -1590,6 +1605,7 @@ enum Defaults {
         DefaultsKey.panelUtilityHomebrew: true,
         DefaultsKey.homebrewGroupDependencies: true,
         DefaultsKey.panelUtilityAppUpdates: true,
+        DefaultsKey.panelUtilityVideoDownloader: true,
         // The list itself costs nothing until it is opened; only the
         // background check keeps a timer, so it starts off.
         DefaultsKey.appUpdatesCheckFrequency: AppUpdatesSupport.CheckFrequency.off.rawValue,
@@ -1787,6 +1803,10 @@ enum Defaults {
         DefaultsKey.mediaImageSelectedProfileID: "",
         DefaultsKey.mediaTextAccurate: true,
         DefaultsKey.mediaTextLanguageCorrection: true,
+        DefaultsKey.videoDownloaderDestinationPath: "",
+        DefaultsKey.videoDownloaderTerminalSetupUsed: false,
+        DefaultsKey.videoDownloaderUseBrowserCookies: false,
+        DefaultsKey.videoDownloaderCookiesBrowser: "safari",
         DefaultsKey.clipboardHistoryEnabled: false,
         DefaultsKey.clipboardHistoryLimit: 50,
         DefaultsKey.clipboardHistoryRetentionDays: 0,

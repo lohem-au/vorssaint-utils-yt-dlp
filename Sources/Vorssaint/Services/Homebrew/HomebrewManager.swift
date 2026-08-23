@@ -54,6 +54,7 @@ final class HomebrewManager: ObservableObject {
 
     var isBusy: Bool {
         isLoadingInstalled || isSearching || isLoadingDetails || operation != nil
+            || HomebrewMutationGate.shared.isReserved
     }
 
     var outdatedCount: Int {
@@ -296,6 +297,19 @@ final class HomebrewManager: ObservableObject {
         }
     }
 
+    /// When automated Homebrew setup needs interactive sudo authorization or Xcode CLI tools,
+    /// hand off to a standalone Terminal session with a static, injection-safe command.
+    @discardableResult
+    func openVideoDownloaderInstaller(formulae: [String] = VideoDownloaderTerminalSetup.defaultFormulae,
+                                      installHomebrew: Bool = true) -> Bool {
+        errorMessage = nil
+        let command = VideoDownloaderTerminalSetup.command(formulae: formulae,
+                                                           installHomebrew: installHomebrew)
+        let opened = openTerminal(command: command)
+        if opened { didOpenInstaller = true }
+        return opened
+    }
+
     func openShellConfiguration() {
         guard let brewPath = brewPath ?? detectBrewPath() else { return }
         self.brewPath = brewPath
@@ -345,6 +359,7 @@ final class HomebrewManager: ObservableObject {
                          package: HomebrewPackage?,
                          command commandOverride: HomebrewCommand? = nil) {
         guard operation == nil else { return }
+        guard let reservation = HomebrewMutationGate.shared.reserve() else { return }
         guard let brewPath = brewPath ?? detectBrewPath() else { return }
         guard let command = commandOverride
                 ?? standardCommand(for: action, package: package, brewPath: brewPath) else { return }
@@ -370,6 +385,7 @@ final class HomebrewManager: ObservableObject {
                          self?.updateOperationStatus(from: chunk, action: action)
                      }) { [weak self] status, output in
             DispatchQueue.main.async {
+                reservation.release()
                 guard let self else { return }
                 self.activeProcess = nil
                 self.operation = nil
@@ -639,10 +655,12 @@ final class HomebrewManager: ObservableObject {
         guard let tap = untrustedTap, !isTrustingTap,
               HomebrewCommandBuilder.isValidToken(tap),
               let brewPath = brewPath ?? detectBrewPath() else { return }
+        guard let reservation = HomebrewMutationGate.shared.reserve() else { return }
         isTrustingTap = true
         let retry = untrustedTapRetry
         run(HomebrewCommandBuilder.trustTap(brewPath: brewPath, tap: tap)) { [weak self] status, output in
             DispatchQueue.main.async {
+                reservation.release()
                 guard let self else { return }
                 self.isTrustingTap = false
                 guard status == 0 else {

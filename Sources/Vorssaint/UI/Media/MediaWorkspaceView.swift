@@ -1359,11 +1359,15 @@ struct MediaWorkspaceView: View {
             panel.makeKeyAndOrderFront(nil)
             return
         }
+        let restorePopover = appDelegate()?.suspendPopoverForModalPanel() ?? false
         NSApp.activate(ignoringOtherApps: true)
         DispatchQueue.main.async {
             let response = panel.runModal()
             panelModalActive = false
             QuickLauncherService.shared.refocusAfterModal()
+            defer {
+                appDelegate()?.restorePopoverAfterModalPanelIfNeeded(wasShown: restorePopover)
+            }
             completion(response)
         }
     }

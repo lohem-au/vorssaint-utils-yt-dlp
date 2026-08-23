@@ -37,6 +37,14 @@ This one feeds window titles and thumbnails in the switcher and Dock Preview. If
 
 This permission is used by the mixer, the optional live equalizer and system audio capture for recordings. If a feature asks for it, open System Settings, Privacy and Security, Screen and System Audio Recording, and switch Vorssaint on. See the [permissions guide](PERMISSIONS.md#system-audio-recording) for what each feature does with the audio.
 
+### Files and Folders
+
+This one powers saving finished media in Video Downloader into your chosen folder, and WhatsApp Downloads cleanup. If saving a download fails with a permissions notice, open System Settings, Privacy and Security, Files and Folders, and make sure Vorssaint is allowed for that folder.
+
+### Full Disk Access
+
+This one powers a deeper scan in the uninstaller, and reading browser cookies when you turn that on for age-restricted or member-only videos in Video Downloader. If reading cookies fails with a permissions notice, open System Settings, Privacy and Security, Full Disk Access, and switch Vorssaint on.
+
 ### Automation
 
 Finder cut and paste and the uninstaller may ask for Automation. If a Finder move does nothing after a denial, open System Settings, Privacy and Security, Automation, and allow Vorssaint for Finder.
@@ -100,7 +108,10 @@ To wipe Vorssaint's granted permissions and let macOS ask again from scratch, pi
 
 ## Clean uninstall
 
-The bundled script takes out everything Vorssaint added, the app itself, its preferences and saved state, the login item, its privacy grants, and the optional closed lid `sudoers` rule.
+The bundled script takes out everything Vorssaint added: the app itself, its
+preferences and saved state, the login item, its privacy grants, and the
+optional closed lid `sudoers` rule. It does not remove downloaded media or
+files in folders you selected for the Video Downloader or other features.
 
 ```sh
 ./Tools/uninstall.sh
