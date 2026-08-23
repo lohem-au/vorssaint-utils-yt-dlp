@@ -554,7 +554,7 @@ private enum UtilityPanelItem: String, PanelOrderItem, Identifiable {
     // Case order IS the default panel order (PanelLayout.itemOrder falls back
     // to allCases). Screenshot leads in 3.1.13; existing orders that predate it
     // are migrated once without disturbing the rest of the user's layout.
-    case screenshot, quickLauncher, appUpdates, cleaner, homebrew, media, clipboard, windowLayout,
+    case screenshot, quickLauncher, appUpdates, cleaner, homebrew, videoDownloader, media, clipboard, windowLayout,
          uninstaller, cleanURL, cleaning, screenOCR, colorPicker, cameraPreview, scratchpad,
          commandBar, screenRecorder, portManager
 
@@ -651,6 +651,11 @@ struct UtilitiesSection: View {
                     PanelInteractionState.shared.viewKeepsPopoverOpen = false
                     showMediaPanel = false
                 }
+            } else if showVideoDownloaderPanel && AppFeature.videoDownloader.isAvailable {
+                PanelVideoDownloaderView {
+                    PanelInteractionState.shared.viewKeepsPopoverOpen = false
+                    showVideoDownloaderPanel = false
+                }
             } else if showClipboardPanel {
                 PanelClipboardView {
                     PanelInteractionState.shared.viewKeepsPopoverOpen = false
@@ -694,6 +699,11 @@ struct UtilitiesSection: View {
         .onChange(of: hostedSettingsPage) { _, page in
             PanelInteractionState.shared.hostedSettingsPage = page
         }
+        .onChange(of: features.revision) { _, _ in
+            guard !AppFeature.videoDownloader.isAvailable, showVideoDownloaderPanel else { return }
+            showVideoDownloaderPanel = false
+            PanelInteractionState.shared.viewKeepsPopoverOpen = false
+        }
         .onDisappear {
             // Another section, or a metric, replacing this one takes the
             // tool off screen with it; a closed panel does not, and keeps it.
@@ -712,6 +722,7 @@ struct UtilitiesSection: View {
         if showURLCleaner { return .urlCleaner }
         if showHomebrewPanel { return .homebrew }
         if showMediaPanel { return .media }
+        if showVideoDownloaderPanel { return .videoDownloader }
         if showClipboardPanel { return .clipboard }
         if showRecentCapturesPanel { return .screenshot }
         if showWindowLayoutPanel { return .windowLayout }
@@ -725,7 +736,7 @@ struct UtilitiesSection: View {
     /// elsewhere in the app must not dismiss it.
     private var isHostingUtility: Bool {
         showUninstaller || showCleanerPanel || showURLCleaner || showHomebrewPanel
-            || showMediaPanel || showClipboardPanel || showRecentCapturesPanel
+            || showMediaPanel || showVideoDownloaderPanel || showClipboardPanel || showRecentCapturesPanel
             || showWindowLayoutPanel || showAppUpdatesPanel || showPortManagerPanel
     }
 
@@ -818,6 +829,18 @@ struct UtilitiesSection: View {
                                 action: {
                                     showMediaPanel = true
                                 })
+        case .videoDownloader:
+            UtilityActionButton(
+                title: FeatureStrings.videoDownloader(l10n.language).pageTitle,
+                caption: FeatureStrings.videoDownloader(l10n.language).panelCaption,
+                systemImage: "arrow.down.circle",
+                isEditing: editing,
+                showsDragHandle: true,
+                visibility: $showVideoDownloader,
+                action: {
+                    showVideoDownloaderPanel = true
+                }
+            )
         case .clipboard:
             UtilityActionButton(title: FeatureStrings.clipboard(l10n.language).title,
                                 caption: clipboardEnabled

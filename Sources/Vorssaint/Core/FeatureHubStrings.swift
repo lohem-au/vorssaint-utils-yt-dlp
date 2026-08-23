@@ -50,6 +50,8 @@ struct FeatureHubStrings {
     let explainFilesAndFolders: String
     let explainNotifications: String
     let explainAutomationFinder: String
+    var permAutomationTerminal: String = "Terminal automation"
+    var explainAutomationTerminal: String = "Lets Homebrew commands open in Terminal."
     let explainAudioCapture: String
     // One-line feature descriptions
     let descSwitcher: String
@@ -315,8 +317,8 @@ extension FeatureHubStrings {
         permAudioCapture: "App audio",
         explainAccessibility: "Lets features react to clicks and keys, and move windows.",
         explainScreenRecording: "Lets features show window thumbnails and read text on screen.",
-        explainFullDisk: "Lets the cleaner and the uninstaller find leftover files everywhere.",
-        explainFilesAndFolders: "Lets WhatsApp downloads cleanup and the experimental organizer inspect your Downloads folder.",
+        explainFullDisk: "Lets the cleaner and the uninstaller find leftover files everywhere, and lets the video downloader read browser cookies when enabled.",
+        explainFilesAndFolders: "Allows the video downloader to save to protected folders and WhatsApp cleanup and its experimental organizer to inspect Downloads.",
         explainNotifications: "Lets the app notify you about alerts you turned on.",
         explainAutomationFinder: "Lets the app ask Finder to move files for you.",
         explainAudioCapture: "Lets the mixer adjust each app’s volume, the Dynamic Island bars follow the music and screen recordings include the Mac’s sound.",
