@@ -565,6 +565,7 @@ enum DefaultsKey {
     static let videoDownloaderTerminalSetupUsed = "videoDownloaderTerminalSetupUsed"
     static let videoDownloaderUseBrowserCookies = "videoDownloaderUseBrowserCookies"
     static let videoDownloaderCookiesBrowser = "videoDownloaderCookiesBrowser"
+    static let videoDownloaderShowNotchProgress = "videoDownloaderShowNotchProgress"
 #if VORSSAINT_TEST
     // Legacy-only names retained for the existing test fixture. The runtime
     // no longer persists Terminal setup state across launches.
@@ -1805,6 +1806,7 @@ enum Defaults {
         DefaultsKey.mediaTextLanguageCorrection: true,
         DefaultsKey.videoDownloaderDestinationPath: "",
         DefaultsKey.videoDownloaderTerminalSetupUsed: false,
+        DefaultsKey.videoDownloaderShowNotchProgress: true,
         DefaultsKey.videoDownloaderUseBrowserCookies: false,
         DefaultsKey.videoDownloaderCookiesBrowser: "safari",
         DefaultsKey.clipboardHistoryEnabled: false,

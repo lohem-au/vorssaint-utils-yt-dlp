@@ -1182,14 +1182,12 @@ struct VideoDownloaderWorkspaceView: View {
             Button {
                 workflow.downloadAnother()
             } label: {
-                HStack(spacing: 4) {
-                    Image(systemName: "arrow.counterclockwise")
-                    Text(text.downloadAnother)
-                }
-                .font(.caption)
-                .foregroundStyle(Color.accentColor)
+                Label(text.downloadAnother, systemImage: "arrow.counterclockwise")
+                    .frame(maxWidth: .infinity)
             }
-            .buttonStyle(.plain)
+            .buttonStyle(.borderedProminent)
+            .controlSize(.regular)
+            .tint(.blue)
             .padding(.top, 1)
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -1596,6 +1594,7 @@ struct VideoDownloaderSettings: View {
     @ObservedObject private var settingsRouter = SettingsRouter.shared
     @AppStorage(DefaultsKey.panelUtilityVideoDownloader) private var showInPanel = true
     @AppStorage(DefaultsKey.videoDownloaderUseBrowserCookies) private var useBrowserCookies = false
+    @AppStorage(DefaultsKey.videoDownloaderShowNotchProgress) private var showNotchProgress = true
     @AppStorage(DefaultsKey.videoDownloaderCookiesBrowser) private var cookiesBrowser = "safari"
     @FocusState private var browserCookiesFocused: Bool
 
@@ -1605,6 +1604,13 @@ struct VideoDownloaderSettings: View {
         Form {
             Section {
                 Toggle(text.showInPanel, isOn: $showInPanel)
+                Toggle(
+                    "Show download progress in Dynamic Island",
+                    isOn: $showNotchProgress
+                )
+                .onChange(of: showNotchProgress) { _, _ in
+                    NotchService.shared.objectWillChange.send()
+                }
             } header: {
                 Text(text.settingsGeneral)
             } footer: {

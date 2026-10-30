@@ -512,9 +512,27 @@ final class NotchService: ObservableObject {
         NotchWatchSupport.isEnabled() && NotchWatchService.shared.isActive
     }
 
+    var hasVideoDownloaderActivity: Bool {
+        guard AppFeature.videoDownloader.isAvailable,
+              UserDefaults.standard.bool(
+                  forKey: DefaultsKey.videoDownloaderShowNotchProgress
+              )
+        else { return false }
+
+        switch VideoDownloaderWorkflow.shared.phase {
+        case .downloading, .finalizing, .cancelling:
+            return true
+        default:
+            return false
+        }
+    }
+
     var hasDownloadActivity: Bool {
-        NotchSupport.routes(.download)
-            && NotchDownloadService.shared.items.contains { $0.active && !$0.completed }
+        hasVideoDownloaderActivity
+            || (NotchSupport.routes(.download)
+                && NotchDownloadService.shared.items.contains {
+                    $0.active && !$0.completed
+                })
     }
 
     var hasMusicActivity: Bool {
