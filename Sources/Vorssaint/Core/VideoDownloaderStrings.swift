@@ -11,7 +11,15 @@ struct VideoDownloaderStrings {
 
     init(_ strings: Strings, language: AppLanguage = .enUS) {
         self.strings = strings
-        self.language = language
+        // The downloader currently has no dedicated Slovak or Ukrainian
+        // supplemental translations. Use English for its local switch-based
+        // labels while retaining the language's main Strings catalogue.
+        switch language {
+        case .sk, .uk:
+            self.language = .enUS
+        default:
+            self.language = language
+        }
     }
 
     var pageTitle: String { strings.videoDownloaderPageTitle }
@@ -38,6 +46,7 @@ struct VideoDownloaderStrings {
         case .ko: return "출력 및 옵션"
         case .zhHans: return "输出与选项"
         case .zhTW, .zhHK: return "輸出與選項"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var moreQualities: String {
@@ -54,6 +63,7 @@ struct VideoDownloaderStrings {
         case .ko: return "더 보기"
         case .zhHans: return "更多"
         case .zhTW, .zhHK: return "更多"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var fewerQualities: String {
@@ -70,6 +80,7 @@ struct VideoDownloaderStrings {
         case .ko: return "간단히 보기"
         case .zhHans: return "收起"
         case .zhTW, .zhHK: return "收合"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var configureBrowserCookies: String {
@@ -86,6 +97,7 @@ struct VideoDownloaderStrings {
         case .ko: return "브라우저 쿠키 설정"
         case .zhHans: return "配置浏览器 Cookie"
         case .zhTW, .zhHK: return "設定瀏覽器 Cookie"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var openSystemSettings: String { strings.permissionOpenSettings }
@@ -104,6 +116,7 @@ struct VideoDownloaderStrings {
         case .zhHans: return "复制错误详情"
         case .zhTW: return "複製錯誤詳細資料"
         case .zhHK: return "複製錯誤詳情"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var errorDetailsCopied: String {
@@ -121,6 +134,7 @@ struct VideoDownloaderStrings {
         case .zhHans: return "已复制错误详情"
         case .zhTW: return "已複製錯誤詳細資料"
         case .zhHK: return "已複製錯誤詳情"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var viewHelp: String {
@@ -137,6 +151,7 @@ struct VideoDownloaderStrings {
         case .ko: return "도움말 보기"
         case .zhHans: return "查看帮助"
         case .zhTW, .zhHK: return "檢視說明"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var hideHelp: String {
@@ -153,6 +168,7 @@ struct VideoDownloaderStrings {
         case .ko: return "도움말 숨기기"
         case .zhHans: return "隐藏帮助"
         case .zhTW, .zhHK: return "隱藏說明"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var openFile: String {
@@ -169,6 +185,7 @@ struct VideoDownloaderStrings {
         case .ko: return "파일 열기"
         case .zhHans: return "打开文件"
         case .zhTW, .zhHK: return "開啟檔案"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var heightFormat: String { strings.videoDownloaderHeightFormat }
@@ -195,6 +212,7 @@ struct VideoDownloaderStrings {
         case .ko: return "브라우저 접근"
         case .zhHans: return "浏览器访问"
         case .zhTW, .zhHK: return "瀏覽器存取"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var usageNotice: String { strings.videoDownloaderUsageNotice }
@@ -224,6 +242,7 @@ struct VideoDownloaderStrings {
         case .ko: return "Homebrew는 누락된 다운로드 도구만 설치합니다."
         case .zhHans: return "Homebrew 只安装缺少的下载工具。"
         case .zhTW, .zhHK: return "Homebrew 只會安裝欠缺的下載工具。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var terminalSetupNote: String {
@@ -240,6 +259,7 @@ struct VideoDownloaderStrings {
         case .ko: return "Terminal에서 다운로더 설정을 완료하세요. 확인이나 암호를 요청한 후 누락된 다운로드 도구를 설치할 수 있습니다."
         case .zhHans: return "请在 Terminal 中完成下载器设置。系统可能要求确认或输入密码，然后安装缺少的下载工具。"
         case .zhTW, .zhHK: return "請在 Terminal 完成下載器設定。系統可能要求確認或密碼，之後安裝欠缺的下載工具。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var checkDependencies: String {
@@ -256,6 +276,7 @@ struct VideoDownloaderStrings {
         case .ko: return "다시 확인"
         case .zhHans: return "再次检查"
         case .zhTW, .zhHK: return "再次檢查"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var checkingTools: String { strings.videoDownloaderCheckingTools }
@@ -303,6 +324,7 @@ struct VideoDownloaderStrings {
         case .ko: return "이 미디어에 접근하려면 브라우저에 로그인된 세션이 필요합니다."
         case .zhHans: return "此媒体需要已登录的浏览器会话才能访问。"
         case .zhTW, .zhHK: return "此媒體需要已登入的瀏覽器工作階段才能存取。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var errorNoVideo: String { strings.videoDownloaderErrorNoVideo }
@@ -339,6 +361,7 @@ struct VideoDownloaderStrings {
             return "视频站点暂时阻止了此请求（通常为 HTTP 429/403 或验证码）。请稍等片刻后重试。"
         case .zhTW, .zhHK:
             return "影片網站暫時封鎖了這次請求（通常是 HTTP 429/403 或驗證碼）。請稍候片刻再試。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var errorEJSComponent: String {
@@ -367,6 +390,7 @@ struct VideoDownloaderStrings {
             return "无法从 GitHub 获取此网站的 JavaScript 挑战解决脚本（某些视频需要）。请检查网络连接后重试。"
         case .zhTW, .zhHK:
             return "無法從 GitHub 取得此網站的 JavaScript 挑戰解決指令碼（部分影片需要）。請檢查網路連線後再試。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var cookiesCaptchaNote: String {
@@ -395,6 +419,7 @@ struct VideoDownloaderStrings {
             return "如果网站显示 CAPTCHA 或类似的访问拦截，请在所选浏览器中打开同一链接并在那里完成验证，然后在视频下载器设置中启用使用浏览器 Cookie，再重试。"
         case .zhTW, .zhHK:
             return "如果網站顯示 CAPTCHA 或類似的存取封鎖，請在所選瀏覽器中開啟相同連結並完成驗證，然後在影片下載器設定中啟用使用瀏覽器 Cookie，再試一次。"
+            case .sk, .uk: preconditionFailure("Slovak and Ukrainian are normalised to English")
         }
     }
     var errorRemux: String { strings.videoDownloaderErrorRemux }
@@ -598,6 +623,8 @@ extension FeatureStrings {
         case .zhHans: return VideoDownloaderStrings(Strings.zhHans, language: .zhHans)
         case .zhTW: return VideoDownloaderStrings(Strings.zhTW, language: .zhTW)
         case .zhHK: return VideoDownloaderStrings(Strings.zhHK, language: .zhHK)
+        case .sk: return VideoDownloaderStrings(Strings.sk, language: .sk)
+        case .uk: return VideoDownloaderStrings(Strings.uk, language: .uk)
         }
     }
 }

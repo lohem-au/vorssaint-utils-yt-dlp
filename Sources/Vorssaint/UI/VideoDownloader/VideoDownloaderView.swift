@@ -475,8 +475,8 @@ struct PanelVideoDownloaderView: View {
 
     var body: some View {
         VideoDownloaderWorkspaceView(compact: true, onClose: close)
-            .onAppear { PanelInteractionState.shared.keepsPopoverOpen = true }
-            .onDisappear { PanelInteractionState.shared.keepsPopoverOpen = false }
+            .onAppear { PanelInteractionState.shared.viewKeepsPopoverOpen = true }
+            .onDisappear { PanelInteractionState.shared.viewKeepsPopoverOpen = false }
     }
 }
 
@@ -1305,22 +1305,24 @@ struct VideoDownloaderWorkspaceView: View {
                 Permissions.shared.openAutomationSettings()
             }
         case let .copyErrorDetails(details):
-            let copied = GeneralPasteboardAccess.shared.sync {
+            GeneralPasteboardAccess.shared.async({
                 let pasteboard = NSPasteboard.general
                 pasteboard.clearContents()
+                pasteboard.declareVorssaintSource()
                 return pasteboard.setString(details, forType: .string)
-            }
-            guard copied else { return }
-            withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
-                errorDetailsCopied = true
-            }
-            postAccessibilityAnnouncement(text.errorDetailsCopied, priority: .medium)
-            DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
-                guard workflow.failure == .extractorError(details) else { return }
-                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
-                    errorDetailsCopied = false
+            }, then: { copied in
+                guard copied else { return }
+                withAnimation(reduceMotion ? nil : .easeOut(duration: 0.15)) {
+                    errorDetailsCopied = true
                 }
-            }
+                postAccessibilityAnnouncement(text.errorDetailsCopied, priority: .medium)
+                DispatchQueue.main.asyncAfter(deadline: .now() + 2) {
+                    guard workflow.failure == .extractorError(details) else { return }
+                    withAnimation(reduceMotion ? nil : .easeOut(duration: 0.2)) {
+                        errorDetailsCopied = false
+                    }
+                }
+            })
         case .viewHelp:
             withAnimation(reduceMotion ? nil : .easeInOut(duration: 0.2)) {
                 rateLimitHelpExpanded.toggle()
@@ -1646,7 +1648,7 @@ struct VideoDownloaderSettings: View {
                          destination: URL(string: "https://github.com/yt-dlp/yt-dlp/wiki/FAQ")!)
                         .font(.caption)
                     if !permissions.fullDiskAccess {
-                        FullDiskAccessNote(note: text.cookiesDiskAccessNote)
+                        FullDiskAccessNote(reason: text.cookiesDiskAccessNote)
                     } else {
                         Label(text.cookiesDiskAccessNote,
                               systemImage: "checkmark.circle.fill")
