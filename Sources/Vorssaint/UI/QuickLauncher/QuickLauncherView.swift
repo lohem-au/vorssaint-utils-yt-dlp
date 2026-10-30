@@ -108,6 +108,11 @@ struct QuickLauncherView: View {
                     PanelHomebrewView { launcher.closeUtility() }
                 case .media:
                     PanelMediaView { launcher.closeUtility() }
+                case .videoDownloader:
+                    VideoDownloaderWorkspaceView(
+                        compact: true,
+                        onClose: { launcher.closeUtility() }
+                    )
                 case .urlCleaner:
                     PanelURLCleanerView { launcher.closeUtility() }
                 case .uninstaller:
@@ -505,6 +510,8 @@ struct QuickLauncherView: View {
         case .cleaning: return l10n.s.cleaningMenuItem
         case .homebrew: return l10n.s.homebrewName
         case .media: return l10n.s.mediaName
+        case .videoDownloader:
+            return FeatureStrings.videoDownloader(l10n.language).pageTitle
         case .urlCleaner: return l10n.s.urlCleanerName
         case .uninstaller: return l10n.s.uninstallerName
         case .cleaner: return l10n.s.cleanerName
@@ -529,6 +536,7 @@ struct QuickLauncherView: View {
         case .cleaning: return "keyboard"
         case .homebrew: return "shippingbox"
         case .media: return "photo.on.rectangle.angled"
+        case .videoDownloader: return "arrow.down.circle"
         case .urlCleaner: return "link"
         case .uninstaller: return "trash"
         case .cleaner: return "sparkle"

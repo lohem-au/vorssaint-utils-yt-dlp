@@ -12,7 +12,7 @@ enum QuickLauncherItem: String, PanelOrderItem, Identifiable {
     // after Keep awake, by the owner's decision. Saved orders are untouched
     // (a case added later joins a saved order at the end).
     case keepAwake, cleaner, toggles, micMute, screenOCR, colorPicker, clipboard, windowLayout,
-         cleaning, homebrew, media, urlCleaner, uninstaller, screenshot, screenRecorder,
+         cleaning, homebrew, media, videoDownloader, urlCleaner, uninstaller, screenshot, screenRecorder,
          cameraPreview, scratchpad
 
     var id: String { rawValue }
@@ -32,6 +32,7 @@ enum QuickLauncherItem: String, PanelOrderItem, Identifiable {
         case .cleaning: return .cleaningMode
         case .homebrew: return .homebrew
         case .media: return .mediaTools
+        case .videoDownloader: return .videoDownloader
         case .urlCleaner: return .urlCleaner
         case .uninstaller: return .uninstaller
         case .screenshot: return .screenshot
@@ -216,7 +217,12 @@ final class QuickLauncherService: ObservableObject {
         // Edit mode counts as a working window too: the clamshell toggle in
         // the Keep awake options card can raise an admin password prompt,
         // and that prompt's activation must not tear the launcher down.
-        activeUtility == nil && !isEditing
+        //
+        // Video Downloader is different from the other hosted utilities:
+        // its workflow and yt-dlp process are owned independently of this
+        // presentation. The island or panel may therefore close while the
+        // download continues in the background.
+        !isEditing && (activeUtility == nil || activeUtility == .videoDownloader)
     }
 
     /// Re-fits the panel to its content when the grid gives way to a hosted
@@ -318,7 +324,7 @@ final class QuickLauncherService: ObservableObject {
             DispatchQueue.main.asyncAfter(deadline: .now() + 0.1) {
                 CleaningModeManager.shared.activate()
             }
-        case .windowLayout, .homebrew, .media, .urlCleaner, .uninstaller, .cleaner, .toggles:
+        case .windowLayout, .homebrew, .media, .videoDownloader, .urlCleaner, .uninstaller, .cleaner, .toggles:
             activeUtility = item
         }
     }

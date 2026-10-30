@@ -241,7 +241,10 @@ final class NotchService: ObservableObject {
             || (expanded && !showingSections && selected == .calendar && Permissions.shared.keepsCalendarPrompt)
             || (expanded && !showingSections && selected == .files && fileInteractionActive)
             || CameraPreviewService.shared.keepsNotchPermissionPrompt
-            || (expanded && !showingSections && selected == .tools && (QuickLauncherService.shared.activeUtility != nil || QuickLauncherService.shared.isEditing))
+            || (expanded && !showingSections && selected == .tools
+                && ((QuickLauncherService.shared.activeUtility != nil
+                     && QuickLauncherService.shared.activeUtility != .videoDownloader)
+                    || QuickLauncherService.shared.isEditing))
     }
     private var showsCapturePreview: Bool {
         expanded && !showingSections && selected == .captures && captureContent != nil
