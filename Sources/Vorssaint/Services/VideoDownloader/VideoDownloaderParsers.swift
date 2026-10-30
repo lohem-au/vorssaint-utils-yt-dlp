@@ -496,7 +496,10 @@ final class VideoDownloaderImageFetcher: NSObject, URLSessionDataDelegate, URLSe
 }
 
 enum VideoDownloaderInspectionParser {
-    static let maximumJSONBytes = 8 * 1024 * 1024
+    // Some YouTube videos expose hundreds of formats and caption tracks,
+    // making yt-dlp inspection JSON exceed 8 MiB even for short videos.
+    // Keep inspection bounded while allowing these legitimate results.
+    static let maximumJSONBytes = 16 * 1024 * 1024
 
     static func parse(_ data: Data,
                       maximumBytes: Int = maximumJSONBytes,

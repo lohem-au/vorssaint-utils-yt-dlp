@@ -338,6 +338,20 @@ final class VideoDownloaderWorkflow: ObservableObject {
                                                         speedBytesPerSecond: nil,
                                                         etaSeconds: nil)
                 self.phase = .completed
+
+                let text = FeatureStrings.videoDownloader(L10n.shared.language)
+                let shown = NotchService.shared.show(
+                    NotchNotice(
+                        event: .download,
+                        title: text.complete,
+                        detail: result.file.lastPathComponent,
+                        symbol: "arrow.down.circle.fill",
+                        mascot: .celebrate
+                    )
+                )
+                if shown {
+                    NotchService.shared.reactMascot(.celebrate)
+                }
             case let .failure(error):
                 if error == .cancelled {
                     self.phase = .cancelled
