@@ -302,6 +302,7 @@ final class VideoDownloaderWorkflow: ObservableObject {
         qualityFallback = nil
         progress = VideoDownloaderProgress(fraction: nil, speedBytesPerSecond: nil, etaSeconds: nil)
         phase = .downloading
+        NotchService.shared.objectWillChange.send()
         let request = VideoDownloaderRequest(source: source,
                                              mode: mode,
                                              quality: quality,
@@ -315,6 +316,7 @@ final class VideoDownloaderWorkflow: ObservableObject {
                 guard self.phase != .cancelling else { return }
                 self.progress = value
                 self.phase = value.isNetworkComplete ? .finalizing : .downloading
+                NotchService.shared.objectWillChange.send()
             case let .title(title):
                 self.activeTitle = title
             case let .selectedVideoHeight(actualHeight):

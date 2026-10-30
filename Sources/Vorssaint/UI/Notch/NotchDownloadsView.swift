@@ -6,6 +6,7 @@ import SwiftUI
 
 struct NotchDownloadsSettingsControls: View {
     @ObservedObject private var downloads = NotchDownloadService.shared
+    @ObservedObject private var videoDownloader = VideoDownloaderWorkflow.shared
     @ObservedObject private var l10n = L10n.shared
     @AppStorage(DefaultsKey.notchDownloadsEnabled) private var enabled = true
     private var text: NotchFilesStrings { FeatureStrings.notchFiles(l10n.language) }
@@ -237,6 +238,7 @@ struct NotchDownloadStrip: View {
     /// another display's when the island shows on every display.
     var displayGeometry: NotchGeometry? = nil
     @ObservedObject private var downloads = NotchDownloadService.shared
+    @ObservedObject private var videoDownloader = VideoDownloaderWorkflow.shared
     @ObservedObject private var l10n = L10n.shared
 
     private var geometry: NotchGeometry { displayGeometry ?? service.compactActivityGeometry }
@@ -250,13 +252,21 @@ struct NotchDownloadStrip: View {
 
     var body: some View {
         let item = downloads.items.first { $0.active && !$0.completed }
+        let downloaderActive = service.hasVideoDownloaderActivity
+        let downloaderFraction = downloaderActive ? videoDownloader.progress.fraction : nil
+        let displayedFraction = downloaderFraction ?? item?.fraction
+        let displayedName = downloaderActive
+            ? (videoDownloader.activeTitle
+                ?? FeatureStrings.videoDownloader(L10n.shared.language).downloading)
+            : (item?.name ?? FeatureStrings.notchFiles(l10n.language).downloadsTitle)
+
         Button { service.openActivity(.downloads) } label: {
             HStack(spacing: 0) {
                 HStack(spacing: 6) {
                     if geometry.compactActivityWingWidth >= 40 {
                         Image(systemName: "arrow.down.circle.fill").font(.system(size: iconSize))
                         if NotchDownloadSupport.showsCompactName(in: geometry) {
-                            Text(item?.name ?? FeatureStrings.notchFiles(l10n.language).downloadsTitle)
+                            Text(displayedName)
                                 .font(.system(size: 11, weight: .medium)).lineLimit(1).truncationMode(.middle)
                         }
                     }
@@ -270,13 +280,13 @@ struct NotchDownloadStrip: View {
                 HStack(spacing: 6) {
                     // The name widens both wings; the bar fills the side the
                     // percentage alone would leave as a band of black.
-                    if NotchDownloadSupport.showsCompactName(in: geometry), let fraction = item?.fraction {
+                    if NotchDownloadSupport.showsCompactName(in: geometry), let fraction = displayedFraction {
                         NotchMeter(value: fraction, height: 4).padding(.leading, 4)
                     } else {
                         Spacer(minLength: 0)
                     }
                     if geometry.compactActivityWingWidth >= 36 {
-                        if let fraction = item?.fraction {
+                        if let fraction = displayedFraction {
                             Text(fraction, format: NotchDownloadSupport.percentFormat(l10n.language))
                                 .font(.system(size: NotchDownloadSupport.percentSize, weight: .medium))
                                 .monospacedDigit()
@@ -297,7 +307,7 @@ struct NotchDownloadStrip: View {
             .contentShape(Rectangle())
         }
         .buttonStyle(.plain)
-        .accessibilityLabel(item?.name ?? FeatureStrings.notchFiles(l10n.language).downloadsTitle)
+        .accessibilityLabel(displayedName)
         .accessibilityHint(FeatureStrings.notch(l10n.language).open)
     }
 }
