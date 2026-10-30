@@ -396,6 +396,8 @@ extension AppFeature {
         case .commandBar: return FeatureSettingsDestination(.commandBar)
         case .screenRecorder:
             return FeatureSettingsDestination(.screenshot, sectionAnchor: .screenRecorder)
+        case .videoDownloader:
+            return FeatureSettingsDestination(.videoDownloader)
 
         case .monitorCPU, .monitorGPU, .monitorMemory, .monitorNetwork, .monitorDisk, .monitorPower, .connectedDevices:
             return FeatureSettingsDestination(.monitor)

@@ -333,13 +333,14 @@ final class HomebrewManager: ObservableObject {
     /// Opens the command in the person's own terminal (see
     /// `HomebrewTerminalScript`), with no Automation consent involved;
     /// `opened` runs on the main thread once macOS has handed it over.
-    private func openTerminal(command: String, opened: (() -> Void)? = nil) {
+    @discardableResult
+    private func openTerminal(command: String, opened: (() -> Void)? = nil) -> Bool {
         let script: URL
         do {
             script = try HomebrewTerminalScript.write(command: command)
         } catch {
             errorMessage = error.localizedDescription
-            return
+            return false
         }
         NSWorkspace.shared.open(script, configuration: NSWorkspace.OpenConfiguration()) { [weak self] _, error in
             DispatchQueue.main.async {
@@ -353,6 +354,7 @@ final class HomebrewManager: ObservableObject {
                 self?.errorMessage = error.localizedDescription
             }
         }
+        return true
     }
 
     private func perform(_ action: HomebrewOperation.Action,

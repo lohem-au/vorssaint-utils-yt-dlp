@@ -2574,7 +2574,7 @@ extension Strings {
         videoDownloaderErrorSubtitle: "Não foi possível baixar e incorporar a legenda selecionada. Se ela exigir login, ative os cookies do navegador e tente novamente.",
         videoDownloaderErrorSubtitleRateLimited: "Foram feitas muitas solicitações de legendas (HTTP 429). O site de vídeo recusou temporariamente a legenda selecionada. Tente novamente mais tarde ou escolha a legenda no idioma original.",
         videoDownloaderErrorOptionalData: "Não foi possível incorporar a capa, os metadados ou os capítulos solicitados.",
-        videoDownloaderErrorFileSafety: "Não foi possível verificar ou colocar com segurança o arquivo final na pasta selecionada."
+        videoDownloaderErrorFileSafety: "Não foi possível verificar ou colocar com segurança o arquivo final na pasta selecionada.",
         switcherScreenPlacementLabel: "Mostrar em",
         switcherScreenPlacementPointer: "Tela com o ponteiro",
         switcherScreenPlacementMenuBar: "Tela com a barra de menus",
@@ -3771,7 +3771,7 @@ extension Strings {
         videoDownloaderErrorSubtitle: "The selected subtitle could not be downloaded and embedded. If it requires sign-in, enable browser cookies and try again.",
         videoDownloaderErrorSubtitleRateLimited: "Too many subtitle requests were made (HTTP 429). The video site temporarily rejected the selected subtitle. Try again later or choose the original-language subtitle.",
         videoDownloaderErrorOptionalData: "The requested artwork, metadata or chapters could not be embedded.",
-        videoDownloaderErrorFileSafety: "The finished file could not be verified or safely placed in the selected folder."
+        videoDownloaderErrorFileSafety: "The finished file could not be verified or safely placed in the selected folder.",
         switcherScreenPlacementLabel: "Show on",
         switcherScreenPlacementPointer: "Display with the pointer",
         switcherScreenPlacementMenuBar: "Display with the menu bar",

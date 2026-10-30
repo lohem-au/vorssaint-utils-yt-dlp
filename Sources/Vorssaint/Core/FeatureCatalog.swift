@@ -66,6 +66,17 @@ enum PermissionPollingSupport {
     }
 }
 
+enum PermissionStatusAggregation {
+    enum Status: Equatable { case granted, missing, unknown }
+
+    static func status(for statuses: [Status]) -> Status {
+        guard !statuses.isEmpty else { return .unknown }
+        if statuses.contains(.missing) { return .missing }
+        if statuses.allSatisfy({ $0 == .granted }) { return .granted }
+        return .unknown
+    }
+}
+
 extension AppFeature {
     /// Whether an engaged feature needs permission changes while it sits in
     /// the background. One-shot tools ask and refresh at the moment they run;
@@ -177,6 +188,7 @@ extension AppFeature {
         case .screenOCR: return "text.viewfinder"
         case .cleaningMode: return "bubbles.and.sparkles"
         case .mediaTools: return "photo.on.rectangle.angled"
+        case .videoDownloader: return "arrow.down.circle"
         case .cleaner: return "sparkles"
         case .uninstaller: return "trash"
         case .homebrew: return "shippingbox"
@@ -380,7 +392,7 @@ extension AppFeature {
         case .uninstaller: return [.fullDiskAccess, .automationFinder]
         case .homebrew: return [.appManagement]
         case .videoDownloader:
-            return [.filesAndFolders, .automationTerminal, .fullDiskAccess]
+            return [.filesAndFolders, .fullDiskAccess]
         case .appUpdates: return [.notifications, .appManagement]
         case .diskImageInstaller: return [.appManagement]
         case .mixer: return [.audioCapture, .accessibility]
@@ -583,8 +595,6 @@ extension AppFeature {
                     && !(stringFor(DefaultsKey.notchHiddenModules) ?? "").split(separator: ",").contains("music")
             case (.screenRecorder, .audioCapture):
                 return boolFor(DefaultsKey.recorderSystemAudio)
-            case (.videoDownloader, .automationTerminal):
-                return boolFor(DefaultsKey.videoDownloaderTerminalSetupUsed)
             case (.videoDownloader, .fullDiskAccess):
                 return boolFor(DefaultsKey.videoDownloaderUseBrowserCookies)
             case (.screenRecorder, .microphone):

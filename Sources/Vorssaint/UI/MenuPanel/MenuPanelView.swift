@@ -569,6 +569,7 @@ private enum UtilityPanelItem: String, PanelOrderItem, Identifiable {
         case .homebrew: return .homebrew
         case .appUpdates: return .appUpdates
         case .media: return .mediaTools
+        case .videoDownloader: return .videoDownloader
         case .clipboard: return .clipboardHistory
         case .windowLayout: return .windowLayout
         case .uninstaller: return .uninstaller
@@ -596,6 +597,7 @@ struct UtilitiesSection: View {
     @State private var showHomebrewPanel = false
     @State private var showAppUpdatesPanel = false
     @State private var showMediaPanel = false
+    @State private var showVideoDownloaderPanel = false
     @State private var showClipboardPanel = false
     @State private var showRecentCapturesPanel = false
     @State private var showWindowLayoutPanel = false
@@ -607,6 +609,7 @@ struct UtilitiesSection: View {
     @AppStorage(DefaultsKey.panelUtilityHomebrew) private var showHomebrew = true
     @AppStorage(DefaultsKey.panelUtilityAppUpdates) private var showAppUpdates = true
     @AppStorage(DefaultsKey.panelUtilityMedia) private var showMedia = true
+    @AppStorage(DefaultsKey.panelUtilityVideoDownloader) private var showVideoDownloader = true
     @AppStorage(DefaultsKey.panelUtilityClipboard) private var showClipboard = true
     @AppStorage(DefaultsKey.panelUtilityWindowLayout) private var showWindowLayout = true
     @AppStorage(DefaultsKey.panelUtilityScreenOCR) private var showScreenOCR = true
@@ -778,6 +781,7 @@ struct UtilitiesSection: View {
         case .homebrew: return showHomebrew
         case .appUpdates: return showAppUpdates
         case .media: return showMedia
+        case .videoDownloader: return showVideoDownloader
         case .clipboard: return showClipboard
         case .windowLayout: return showWindowLayout
         case .uninstaller: return showUninstallerAction

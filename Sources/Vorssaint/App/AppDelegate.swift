@@ -1359,7 +1359,7 @@ final class AppDelegate: NSObject, NSApplicationDelegate, NSPopoverDelegate, NSW
     @discardableResult
     func suspendPopoverForModalPanel() -> Bool {
         guard popover.isShown else { return false }
-        PanelInteractionState.shared.keepsPopoverOpen = false
+        PanelInteractionState.shared.viewKeepsPopoverOpen = false
         closePopover(animated: false)
         return true
     }
