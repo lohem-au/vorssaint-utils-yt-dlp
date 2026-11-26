@@ -130,6 +130,25 @@ struct VideoDownloaderMedia: Equatable {
     }
 }
 
+struct VideoDownloaderClipRange: Equatable {
+    let start: TimeInterval
+    let end: TimeInterval
+    let preciseCut: Bool
+
+    var duration: TimeInterval { max(0, end - start) }
+
+    init?(start: TimeInterval, end: TimeInterval, preciseCut: Bool = true) {
+        guard start.isFinite,
+              end.isFinite,
+              start >= 0,
+              end > start else { return nil }
+
+        self.start = start
+        self.end = end
+        self.preciseCut = preciseCut
+    }
+}
+
 struct VideoDownloaderRequest {
     let source: ValidatedVideoURL
     let mode: VideoDownloaderOutputMode
@@ -137,6 +156,7 @@ struct VideoDownloaderRequest {
     let subtitle: VideoDownloaderSubtitleTrack?
     let destination: URL
     let media: VideoDownloaderMedia
+    let clipRange: VideoDownloaderClipRange?
 
     func withQuality(_ value: VideoDownloaderQuality) -> VideoDownloaderRequest {
         VideoDownloaderRequest(source: source,
@@ -144,7 +164,8 @@ struct VideoDownloaderRequest {
                                quality: value,
                                subtitle: subtitle,
                                destination: destination,
-                               media: media)
+                               media: media,
+                         clipRange: clipRange)
     }
 
     var videoWeight: Double? {

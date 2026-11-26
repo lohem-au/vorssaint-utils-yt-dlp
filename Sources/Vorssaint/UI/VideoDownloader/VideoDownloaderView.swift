@@ -482,6 +482,59 @@ struct PanelVideoDownloaderView: View {
 
 // MARK: - Workspace Redesign Orchestrator
 
+
+private struct VideoDownloaderClipSlider: NSViewRepresentable {
+ @Binding var value: Double
+ let range: ClosedRange<Double>
+ let label: String
+
+ func makeCoordinator() -> Coordinator {
+  Coordinator(value: $value)
+ }
+
+ func makeNSView(context: Context) -> NSSlider {
+  let slider = NSSlider(
+   value: value,
+   minValue: range.lowerBound,
+   maxValue: range.upperBound,
+   target: context.coordinator,
+   action: #selector(Coordinator.changed(_:))
+  )
+  slider.isContinuous = true
+  slider.altIncrementValue = 0.1
+  slider.setAccessibilityLabel(label)
+  return slider
+ }
+
+ func updateNSView(_ slider: NSSlider, context: Context) {
+  context.coordinator.value = $value
+
+  slider.minValue = range.lowerBound
+  slider.maxValue = max(range.lowerBound, range.upperBound)
+
+  let bounded = min(slider.maxValue, max(slider.minValue, value))
+  if abs(slider.doubleValue - bounded) > 0.0001 {
+   slider.doubleValue = bounded
+  }
+
+  slider.isEnabled = context.environment.isEnabled
+ }
+
+ final class Coordinator: NSObject {
+  var value: Binding<Double>
+
+  init(value: Binding<Double>) {
+   self.value = value
+  }
+
+  @objc func changed(_ sender: NSSlider) {
+   let rounded = (sender.doubleValue * 10).rounded() / 10
+   value.wrappedValue = rounded
+  }
+ }
+}
+
+
 struct VideoDownloaderWorkspaceView: View {
     @ObservedObject private var l10n = L10n.shared
     @ObservedObject private var workflow = VideoDownloaderWorkflow.shared
@@ -885,6 +938,8 @@ struct VideoDownloaderWorkspaceView: View {
                 }
             }
 
+ clipSelectionSection(media)
+
             if media.videoAvailability == .unavailable {
                 message(text.errorNoVideo, color: .orange)
             }
@@ -894,6 +949,154 @@ struct VideoDownloaderWorkspaceView: View {
         }
         .frame(maxWidth: .infinity, alignment: .leading)
     }
+
+
+ private func clipSelectionSection(_ media: VideoDownloaderMedia) -> some View {
+  VStack(alignment: .leading, spacing: 8) {
+   Toggle(isOn: Binding(
+    get: { workflow.clipEnabled },
+    set: workflow.setClipEnabled
+   )) {
+    Label("Download a portion", systemImage: "selection.pin.in.out")
+     .font(.caption)
+   }
+   .toggleStyle(.switch)
+   .disabled(controlsLocked || media.duration == nil)
+
+   if workflow.clipEnabled, let duration = media.duration, duration > 1 {
+    VStack(alignment: .leading, spacing: 7) {
+ clipTimeControl(
+  label: "IN",
+  value: workflow.clipStart,
+  range: 0...max(0, duration - 0.1),
+  setter: workflow.setClipStart
+ )
+
+ clipTimeControl(
+  label: "OUT",
+  value: workflow.clipEnd,
+  range: min(duration, workflow.clipStart + 0.1)...duration,
+  setter: workflow.setClipEnd
+ )
+     HStack {
+      Label(
+       "Clip: \(durationText(max(0, workflow.clipEnd - workflow.clipStart)))",
+       systemImage: "scissors"
+      )
+      .font(.caption.weight(.medium))
+      .foregroundStyle(.secondary)
+
+      Spacer()
+
+      Toggle("Precise cut", isOn: Binding(
+       get: { workflow.clipPreciseCut },
+       set: workflow.setClipPreciseCut
+      ))
+      .toggleStyle(.checkbox)
+      .font(.caption)
+      .disabled(controlsLocked)
+     }
+
+     if !workflow.clipRangeIsValid {
+      message("Choose an OUT point after the IN point.", color: .orange)
+     }
+    }
+    .padding(9)
+    .background(
+     RoundedRectangle(cornerRadius: 8, style: .continuous)
+      .fill(PanelSurface.controlFill(for: colorScheme))
+    )
+   } else if workflow.clipEnabled {
+    message("A known video duration is required to select a portion.", color: .orange)
+   }
+  }
+  .padding(.top, 4)
+ }
+
+
+ private func clipTimeControl(
+  label: String,
+  value: TimeInterval,
+  range: ClosedRange<Double>,
+  setter: @escaping (TimeInterval) -> Void
+ ) -> some View {
+  VStack(alignment: .leading, spacing: 4) {
+   HStack {
+    Text(label)
+     .font(.caption.weight(.semibold))
+
+    Spacer()
+
+    TextField(
+     label,
+     text: Binding(
+      get: { editableDurationText(value) },
+      set: { input in
+       guard let parsed = parseDurationText(input) else { return }
+       setter(min(range.upperBound, max(range.lowerBound, parsed)))
+      }
+     )
+    )
+    .textFieldStyle(.roundedBorder)
+    .font(.caption.monospacedDigit())
+    .multilineTextAlignment(.trailing)
+    .frame(width: 88)
+    .disabled(controlsLocked)
+   }
+
+   VideoDownloaderClipSlider(
+    value: Binding(
+     get: { value },
+     set: setter
+    ),
+    range: range,
+    label: label
+   )
+   .frame(height: 18)
+   .disabled(controlsLocked)
+  }
+ }
+
+ private func editableDurationText(_ seconds: TimeInterval) -> String {
+  let safe = max(0, seconds.isFinite ? seconds : 0)
+  let hours = Int(safe) / 3600
+  let minutes = (Int(safe) % 3600) / 60
+  let remainder = safe.truncatingRemainder(dividingBy: 60)
+
+  if hours > 0 {
+   return String(format: "%d:%02d:%04.1f", hours, minutes, remainder)
+  }
+
+  return String(format: "%d:%04.1f", minutes, remainder)
+ }
+
+ private func parseDurationText(_ input: String) -> TimeInterval? {
+  let trimmed = input.trimmingCharacters(in: .whitespacesAndNewlines)
+  guard !trimmed.isEmpty else { return nil }
+
+  let parts = trimmed.split(separator: ":", omittingEmptySubsequences: false)
+  guard (1...3).contains(parts.count) else { return nil }
+
+  let numbers = parts.compactMap { Double($0) }
+  guard numbers.count == parts.count,
+        numbers.allSatisfy({ $0.isFinite && $0 >= 0 }) else { return nil }
+
+  switch numbers.count {
+  case 1:
+   return numbers[0]
+
+  case 2:
+   guard numbers[1] < 60 else { return nil }
+   return numbers[0] * 60 + numbers[1]
+
+  case 3:
+   guard numbers[1] < 60, numbers[2] < 60 else { return nil }
+   return numbers[0] * 3600 + numbers[1] * 60 + numbers[2]
+
+  default:
+   return nil
+  }
+ }
 
     private func qualitySelectionSection(_ media: VideoDownloaderMedia) -> some View {
         let layout = VideoDownloaderQualityLayout(heights: media.heights)

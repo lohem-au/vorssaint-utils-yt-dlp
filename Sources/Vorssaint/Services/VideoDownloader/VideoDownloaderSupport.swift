@@ -149,6 +149,15 @@ enum VideoDownloaderCommandBuilder {
             arguments += ["--js-runtimes", "deno:\(denoPath)"]
         }
 
+        if let clipRange = request.clipRange {
+            let start = String(format: "%.3f", clipRange.start)
+            let end = String(format: "%.3f", clipRange.end)
+            arguments += ["--download-sections", "*\(start)-\(end)"]
+            if clipRange.preciseCut {
+                arguments.append("--force-keyframes-at-cuts")
+            }
+        }
+
         switch request.mode {
         case .video:
             // Target MP4/M4A for native Apple ecosystem compatibility, but fallback cleanly to MKV
@@ -165,7 +174,11 @@ enum VideoDownloaderCommandBuilder {
         arguments += ["--no-write-thumbnail", "--no-embed-thumbnail"]
         arguments.append("--embed-metadata")
 
-        arguments.append("--embed-chapters")
+        if request.clipRange == nil {
+         arguments.append("--embed-chapters")
+        } else {
+         arguments.append("--no-embed-chapters")
+        }
 
         if request.mode == .video {
             // Fetch subtitles in the primary download command to save an extra network roundtrip and extractor initialization.

@@ -155,6 +155,10 @@ final class VideoDownloaderWorkflow: ObservableObject {
     @Published private(set) var quality: VideoDownloaderQuality = .best
     @Published private(set) var subtitle: VideoDownloaderSubtitleTrack?
     @Published private(set) var subtitlesEnabled = false
+ @Published private(set) var clipEnabled = false
+ @Published private(set) var clipStart: TimeInterval = 0
+ @Published private(set) var clipEnd: TimeInterval = 0
+ @Published private(set) var clipPreciseCut = true
     @Published private(set) var destination: URL
     @Published private(set) var dependencyState: VideoDownloaderDependencyState = .probing(previous: nil)
     @Published private(set) var progress = VideoDownloaderProgress(fraction: nil,
@@ -206,6 +210,8 @@ final class VideoDownloaderWorkflow: ObservableObject {
     var canDownload: Bool {
         guard featureAvailability(), phase == .ready, dependencyState.value?.isReady == true,
               let media, !sourceText.isEmpty else { return false }
+              guard clipRangeIsValid else { return false }
+              guard clipRangeIsValid else { return false }
         switch mode {
         case .video: return media.canAttemptVideo
         case .audio: return media.canAttemptAudio
@@ -308,7 +314,8 @@ final class VideoDownloaderWorkflow: ObservableObject {
                                              quality: quality,
                                              subtitle: mode == .video && subtitlesEnabled ? subtitle : nil,
                                              destination: currentDestination,
-                                             media: media)
+                                             media: media,
+                                             clipRange: clipRange)
         service.download(request, id: id, progress: { [weak self] callbackID, event in
             guard let self, self.operations.acceptsProcess(callbackID) else { return }
             switch event {
@@ -380,6 +387,62 @@ final class VideoDownloaderWorkflow: ObservableObject {
             subtitlesEnabled = preferred && subtitle != nil
         }
     }
+
+
+ func setClipEnabled(_ enabled: Bool) {
+  dispatchPrecondition(condition: .onQueue(.main))
+  guard !phase.locksRequest else { return }
+  clipEnabled = enabled
+
+  if enabled, let duration = media?.duration, duration > 0 {
+   clipStart = min(max(0, clipStart), duration)
+   if clipEnd <= clipStart || clipEnd > duration {
+    clipEnd = duration
+   }
+  }
+ }
+
+ func setClipStart(_ value: TimeInterval) {
+  dispatchPrecondition(condition: .onQueue(.main))
+  guard !phase.locksRequest else { return }
+  let maximum = media?.duration ?? max(value, clipEnd)
+  clipStart = min(max(0, value), maximum)
+
+  if clipEnd <= clipStart {
+   clipEnd = min(maximum, clipStart + 1)
+  }
+ }
+
+ func setClipEnd(_ value: TimeInterval) {
+  dispatchPrecondition(condition: .onQueue(.main))
+  guard !phase.locksRequest else { return }
+  let maximum = media?.duration ?? max(value, clipStart + 1)
+  clipEnd = min(max(0, value), maximum)
+ }
+
+ func setClipPreciseCut(_ enabled: Bool) {
+  dispatchPrecondition(condition: .onQueue(.main))
+  guard !phase.locksRequest else { return }
+  clipPreciseCut = enabled
+ }
+
+ var clipRange: VideoDownloaderClipRange? {
+  guard clipEnabled else { return nil }
+  return VideoDownloaderClipRange(
+   start: clipStart,
+   end: clipEnd,
+   preciseCut: clipPreciseCut
+  )
+ }
+
+ var clipRangeIsValid: Bool {
+  guard clipEnabled else { return true }
+  guard let range = clipRange else { return false }
+  if let duration = media?.duration {
+   return range.end <= duration
+  }
+  return true
+ }
 
     func setQuality(_ value: VideoDownloaderQuality) {
         dispatchPrecondition(condition: .onQueue(.main))
@@ -676,6 +739,10 @@ final class VideoDownloaderWorkflow: ObservableObject {
         subtitle = nil
         subtitlesEnabled = false
         quality = .best
+ clipEnabled = false
+ clipStart = 0
+ clipEnd = 0
+ clipPreciseCut = true
         completedFile = nil
         warnings = []
         activeTitle = nil
